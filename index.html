@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Personal Financial Plan Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f5f2;
+      --surface: #ffffff;
+      --border: #e4e0d8;
+      --border-hover: #c8c2b6;
+      --text-primary: #1a1814;
+      --text-secondary: #5c5750;
+      --text-muted: #9c9790;
+      --accent: #c8602a;
+      --accent-light: #fdf0ea;
+      --accent-border: #e8a07a;
+      --success: #2d7a4f;
+      --success-bg: #edf7f2;
+      --danger: #b83232;
+      --danger-bg: #fdf0f0;
+      --info-bg: #eef3fb;
+      --info-text: #1e4a8a;
+      --info-border: #9db8e0;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .page-wrap {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .page-header .eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-light);
+      border: 1px solid var(--accent-border);
+      border-radius: 99px;
+      padding: 4px 14px;
+      margin-bottom: 14px;
+    }
+
+    .page-header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 36px;
+      font-weight: 400;
+      line-height: 1.2;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+
+    .page-header p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 460px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      margin-bottom: 1rem;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .card:nth-child(2) { animation-delay: 0.05s; }
+    .card:nth-child(3) { animation-delay: 0.10s; }
+    .card:nth-child(4) { animation-delay: 0.15s; }
+    .card:nth-child(5) { animation-delay: 0.20s; }
+    .card:nth-child(6) { animation-delay: 0.25s; }
+    .card:nth-child(7) { animation-delay: 0.30s; }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title svg { width: 16px; height: 16px; color: var(--accent); flex-shrink: 0; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 520px) { .two-col { grid-template-columns: 1fr; } }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+
+    .field label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .input-wrap { position: relative; }
+
+    .input-wrap input,
+    .input-wrap select {
+      width: 100%;
+      height: 42px;
+      padding: 0 48px 0 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+      -webkit-appearance: none;
+    }
+
+    .input-wrap input:focus,
+    .input-wrap select:focus {
+      border-color: var(--accent-border);
+      background: var(--surface);
+      box-shadow: 0 0 0 3px var(--accent-light);
+    }
+
+    .input-wrap input::placeholder { color: var(--text-muted); }
+
+    .badge {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      pointer-events: none;
+      background: var(--border);
+      padding: 2px 7px;
+      border-radius: 99px;
+    }
+
+    /* Currency toggle */
+    .cur-toggle { display: flex; gap: 6px; margin-bottom: 1.5rem; }
+    .cur-btn {
+      padding: 6px 16px;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .cur-btn:hover { border-color: var(--border-hover); background: var(--bg); }
+    .cur-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* Goal grid */
+    .goal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    @media (max-width: 420px) { .goal-grid { grid-template-columns: 1fr; } }
+
+    .goal-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text-secondary);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+    }
+    .goal-btn:hover { border-color: var(--border-hover); background: var(--surface); }
+    .goal-btn.selected {
+      background: var(--accent-light);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+    .goal-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    /* Summary bar */
+    .summary {
+      background: var(--info-bg);
+      border: 1px solid var(--info-border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    .summary-item { font-size: 13px; color: var(--info-text); }
+    .summary-item span { font-weight: 500; }
+    .surplus { color: var(--success) !important; }
+    .deficit { color: var(--danger) !important; }
+
+    /* Submit */
+    .submit-btn {
+      width: 100%;
+      height: 50px;
+      margin-top: 1rem;
+      border: none;
+      border-radius: 12px;
+      background: var(--accent);
+      color: #fff;
+      font-family: 'DM Serif Display', serif;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.18s;
+      letter-spacing: 0.01em;
+    }
+    .submit-btn:hover { background: #b3521f; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,96,42,0.25); }
+    .submit-btn:active { transform: scale(0.99); }
+    .submit-btn svg { width: 20px; height: 20px; }
+
+    /* Result panel */
+    #result-panel {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      margin-top: 1rem;
+      white-space: pre-wrap;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text-primary);
+      animation: fadeUp 0.4s ease both;
+    }
+
+    #result-panel h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      font-weight: 400;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    #result-content { font-size: 14px; line-height: 1.8; color: var(--text-secondary); }
+
+    .powered {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2rem;
+    }
+
+    .powered a { color: var(--accent); text-decoration: none; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .loading-dots span {
+      display: inline-block;
+      animation: blink 1.2s infinite;
+    }
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <div class="page-header">
+    <div class="eyebrow">AI-Powered · Free</div>
+    <h1>Personal Financial<br>Plan Builder</h1>
+    <p>Fill in your details below and get a personalized monthly budget, savings strategy, and financial roadmap — instantly.</p>
+  </div>
+
+  <!-- Currency -->
+  <div class="cur-toggle">
+    <button class="cur-btn active" onclick="setCurrency('AED')">AED (د.إ)</button>
+    <button class="cur-btn" onclick="setCurrency('INR')">INR (₹)</button>
+    <button class="cur-btn" onclick="setCurrency('USD')">USD ($)</button>
+  </div>
+
+  <!-- Income -->
+  <div class="card">
+    <div class="section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Income &amp; Location
+    </div>
+    <div class="two-col">
+      <div class="field">
+        <label>Monthly income</label>
+        <div class="input-wrap">
+          <input type="number" id="income" placeholder="e.g. 5000" oninput="updateSummary()" />
+          <span class="badge" id="income-badge">AED</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Your city / country</label>
+        <div class="input-wrap">
+          <input type="text" id="location" placeholder="e.g. Dubai, Sharjah" style="padding-right:14px" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fixed expenses -->
+  <div class="card">
+    <div class="section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+      Fixed Monthly Expenses
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Rent / housing</label><div class="input-wrap"><input type="number" id="rent" placeholder="0" oninput="updateSummary()"/><span class="badge cur-sym">AED</span></div></div>
+      <div class="field"><label>Utilities (electricity, water, internet)</label><div class="input-wrap"><input type="number" id="utilities" placeholder="0" oninput="updateSummary()"/><span class="badge cur-sym">AED</span></div></div>
+      <div class="field"><label>EMI (loan, car, etc.)</label><div class="input-wrap"><input type="number" id="emi" placeholder="0" oninput="updateSummary()"/><span class="badge cur-sym">AED</span></div></div>
+      <div class="field"><label>Insurance</label><div class="input-wrap"><input type="number" id="insurance" placeholder="0" oninput="updateSummary()"/><span class="badge cur-sym">AED</span></div></div>
+    </div>
+  </div>
+
+  <!-- Variable expenses -->
+  <div class="card">
+    <div class="section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      Variable Monthly Expenses
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Food &amp; groceries</label><div class="input-wrap"><input type="number" id="food" placeholder="0" oninput="updateSummary()"/><span class="badge cur-sym">AED</span></div></div>
+      <div class="field"><label>Transport / fuel</label><div class="input-wrap"><input type="number" id="transport" placeholder="0" oninput="updateSummary()"/><span class="badge cur-sym">AED</span></div></div>
+      <div class="field"><label>Entertainment &amp; dining out</label><div class="input-wrap"><input type="number" id="entertainment" placeholder="0" oninput="updateSummary()"/><span class="badge cur-sym">AED</span></div></div>
+      <div class="field"><label>Shopping &amp; personal care</label><div class="input-wrap"><input type="number" id="shopping" placeholder="0" oninput="updateSummary()"/><span class="badge cur-sym">AED</span></div></div>
+    </div>
+  </div>
+
+  <!-- Family -->
+  <div class="card">
+    <div class="section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Family &amp; Remittance
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Money sent home / family</label><div class="input-wrap"><input type="number" id="remittance" placeholder="0" oninput="updateSummary()"/><span class="badge cur-sym">AED</span></div></div>
+      <div class="field"><label>Other regular expenses</label><div class="input-wrap"><input type="number" id="other" placeholder="0" oninput="updateSummary()"/><span class="badge cur-sym">AED</span></div></div>
+    </div>
+  </div>
+
+  <!-- Savings & Debts -->
+  <div class="card">
+    <div class="section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3.332.85-4.5 2.16C10.832 3.85 9.26 3 7.5 3A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7z"/></svg>
+      Savings &amp; Debts
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Current savings / investments</label><div class="input-wrap"><input type="number" id="savings" placeholder="0"/><span class="badge cur-sym">AED</span></div></div>
+      <div class="field"><label>Total debts (credit card, loans)</label><div class="input-wrap"><input type="number" id="debt" placeholder="0"/><span class="badge cur-sym">AED</span></div></div>
+    </div>
+  </div>
+
+  <!-- Goal -->
+  <div class="card">
+    <div class="section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      Primary Financial Goal
+    </div>
+    <div class="goal-grid">
+      <button class="goal-btn" onclick="selectGoal(this,'Build an emergency fund')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Build an emergency fund
+      </button>
+      <button class="goal-btn" onclick="selectGoal(this,'Pay off debt / EMI faster')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Pay off debt / EMI faster
+      </button>
+      <button class="goal-btn" onclick="selectGoal(this,'Save for a car or home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v5"/><circle cx="16" cy="17" r="2"/><circle cx="9" cy="17" r="2"/><path d="M13 17H11"/></svg>
+        Save for a car or home
+      </button>
+      <button class="goal-btn" onclick="selectGoal(this,'Invest for the future')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        Invest for the future
+      </button>
+      <button class="goal-btn" onclick="selectGoal(this,'Send more money home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send more money home
+      </button>
+      <button class="goal-btn" onclick="selectGoal(this,'Increase monthly savings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        Increase monthly savings
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary" id="summary-bar">
+    <div class="summary-item">Income: <span id="s-income">—</span></div>
+    <div class="summary-item">Total expenses: <span id="s-expenses">—</span></div>
+    <div class="summary-item">Monthly balance: <span id="s-surplus">—</span></div>
+  </div>
+
+  <!-- Submit -->
+  <button class="submit-btn" onclick="generatePlan()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    Generate My Financial Plan
+  </button>
+
+  <!-- Result -->
+  <div id="result-panel">
+    <h2>Your Personalized Financial Plan</h2>
+    <div id="result-content"></div>
+  </div>
+
+  <p class="powered">Powered by <a href="https://claude.ai" target="_blank">Claude AI</a> · Built with ♥ for your financial future</p>
+
+</div>
+
+<script>
+  let currency = 'AED';
+  let selectedGoal = '';
+
+  function setCurrency(c) {
+    currency = c;
+    ['AED','INR','USD'].forEach(x => {
+      document.querySelectorAll('.cur-btn').forEach(b => {
+        if (b.textContent.startsWith(x)) b.classList.toggle('active', x === c);
+      });
+    });
+    document.querySelectorAll('.cur-sym').forEach(b => b.textContent = c);
+    document.getElementById('income-badge').textContent = c;
+    updateSummary();
+  }
+
+  function selectGoal(el, goal) {
+    document.querySelectorAll('.goal-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedGoal = goal;
+  }
+
+  function val(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+  function fmt(n) {
+    const sym = currency === 'INR' ? '₹' : currency === 'USD' ? '$' : 'AED ';
+    return sym + Math.round(n).toLocaleString();
+  }
+
+  function updateSummary() {
+    const income = val('income');
+    const expenses = val('rent') + val('utilities') + val('emi') + val('insurance') +
+                     val('food') + val('transport') + val('entertainment') + val('shopping') +
+                     val('remittance') + val('other');
+    const surplus = income - expenses;
+    document.getElementById('s-income').textContent = income ? fmt(income) : '—';
+    document.getElementById('s-expenses').textContent = expenses ? fmt(expenses) : '—';
+    const el = document.getElementById('s-surplus');
+    if (income || expenses) {
+      el.textContent = fmt(Math.abs(surplus)) + (surplus < 0 ? ' deficit' : ' surplus');
+      el.className = surplus < 0 ? 'deficit' : 'surplus';
+    } else {
+      el.textContent = '—'; el.className = '';
+    }
+  }
+
+  async function generatePlan() {
+    const income = val('income');
+    const location = document.getElementById('location').value.trim() || 'UAE';
+    if (!income) { alert('Please enter your monthly income.'); return; }
+    if (!selectedGoal) { alert('Please select your primary financial goal.'); return; }
+
+    const rent = val('rent'), utilities = val('utilities'), emi = val('emi'), insurance = val('insurance');
+    const food = val('food'), transport = val('transport'), entertainment = val('entertainment'), shopping = val('shopping');
+    const remittance = val('remittance'), other = val('other');
+    const savings = val('savings'), debt = val('debt');
+    const fixedTotal = rent + utilities + emi + insurance;
+    const variableTotal = food + transport + entertainment + shopping;
+    const totalExp = fixedTotal + variableTotal + remittance + other;
+
+    const panel = document.getElementById('result-panel');
+    const content = document.getElementById('result-content');
+    panel.style.display = 'block';
+    content.innerHTML = '<span class="loading-dots"><span>●</span><span>●</span><span>●</span></span> Analyzing your finances...';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const prompt = `You are an expert financial advisor. Give a complete personalized monthly budget and financial plan based on:
+
+- Monthly income: ${income} ${currency}
+- Location: ${location}
+- Fixed expenses: Rent ${rent}, Utilities ${utilities}, EMI ${emi}, Insurance ${insurance} — Total: ${fixedTotal} ${currency}
+- Variable expenses: Food ${food}, Transport ${transport}, Entertainment ${entertainment}, Shopping ${shopping} — Total: ${variableTotal} ${currency}
+- Money sent home: ${remittance} ${currency}
+- Other expenses: ${other} ${currency}
+- Total monthly expenses: ${totalExp} ${currency}
+- Current savings: ${savings} ${currency}
+- Total debts: ${debt} ${currency}
+- Primary goal: ${selectedGoal}
+
+Please provide:
+1. Financial health analysis (income vs expenses, savings rate, debt situation)
+2. Recommended monthly budget breakdown (use 50/30/20 or a better alternative for this situation). Include EMI and remittance clearly.
+3. 5 specific actionable steps to reduce expenses and increase savings
+4. Step-by-step plan to achieve: "${selectedGoal}"
+5. 5 practical money-saving tips specific to ${location}
+
+Be specific with numbers in ${currency}. Be warm, practical, and encouraging.`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      const data = await res.json();
+      const text = data.content?.map(b => b.text || '').join('') || 'Sorry, could not generate a plan. Please try again.';
+      content.innerHTML = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/###? (.*?)(<br>|$)/g, '<h3 style="font-family:\'DM Serif Display\',serif;font-size:17px;font-weight:400;margin:1.25rem 0 0.5rem;color:var(--text-primary)">$1</h3>');
+    } catch (e) {
+      content.innerHTML = '<span style="color:var(--danger)">Something went wrong. Please check your connection and try again.</span>';
+    }
+  }
+</script>
+</body>
+</html>
